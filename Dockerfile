@@ -2,11 +2,30 @@ FROM ubuntu:precise
 
 MAINTAINER mlk007
 
-
-#RUN echo "deb http://archive.ubuntu.com/ubuntu/ precise universe" >> /etc/apt/sources.list
 RUN apt-get update
-RUN apt-get -y install perl tar wget curl openjdk-7-jre-headless
+RUN apt-get -y install apt-utils
+RUN apt-get -y install perl
 RUN apt-get -y install perl
 RUN apt-get -y install tar
 RUN apt-get -y install wget
 RUN apt-get -y install curl
+RUN apt-get -y install openjdk-7-jdk
+
+RUN mkdir /apps
+RUN mkdir /apps/scripts
+RUN mkdir /apps/installs
+RUN mkdir /apps/data
+RUN mkdir /apps/data/logs
+RUN mkdir /apps/data/fuseki
+RUN chmod 777 -R /apps
+
+WORKDIR /apps/installs
+
+RUN wget  https://www.apache.org/dist/jena/binaries/jena-fuseki-1.1.0-distribution.tar.gz  -O- | tar -zx -C /apps/installs jena-fuseki-1.1.0
+
+RUN wget  http://archive.apache.org/dist/tomcat/tomcat-7/v7.0.55/bin/apache-tomcat-7.0.55.tar.gz  -O- | tar -zx -C /apps/installs apache-tomcat-7.0.55
+
+
+EXPOSE 8080
+
+EXPOSE 3030
