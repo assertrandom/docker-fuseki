@@ -1,37 +1,52 @@
-FROM ubuntu:precise
+FROM centos:centos6
 
 MAINTAINER mlk007
 
-RUN apt-get update
-RUN apt-get -y install apt-utils
-RUN apt-get -y install perl
-RUN apt-get -y install perl
-RUN apt-get -y install tar
-RUN apt-get -y install wget
-RUN apt-get -y install curl
-RUN apt-get -y install vim
-RUN apt-get -y install openjdk-7-jdk
+#ENV DEBIAN_FRONTEND noninteractive
 
+RUN yum -y update
+RUN yum -y update device-mapper-libs
+RUN yum -y install java-1.7.0-openjdk-src.x86_64
 
-RUN mkdir /apps
-RUN mkdir /apps/scripts
-RUN mkdir /apps/installs
-RUN mkdir /apps/data
-RUN mkdir /apps/data/logs
-RUN mkdir /apps/data/fuseki
-RUN mkdir /apps/data/www
-RUN chmod 777 -R /apps
+RUN yum -y install wget
+RUN yum -y install tar
 
-ADD scripts/start-services.sh /apps/scripts/start-services.sh
-RUN chmod +x /apps/scripts/start-services.sh
+RUN yum -y install which
 
-WORKDIR /apps/installs
+RUN yum -y install ruby
 
-RUN wget  https://www.apache.org/dist/jena/binaries/jena-fuseki-1.1.0-distribution.tar.gz  -O- | tar -zx -C /apps/installs jena-fuseki-1.1.0
+RUN set JAVA_HOME=/usr/lib/jvm/jre-1.7.0-openjdk.x86_64/
 
-RUN wget  http://archive.apache.org/dist/tomcat/tomcat-7/v7.0.55/bin/apache-tomcat-7.0.55.tar.gz  -O- | tar -zx -C /apps/installs apache-tomcat-7.0.55
+RUN mkdir /data
+RUN mkdir /data/app
+RUN mkdir /data/ttl
+RUN mkdir /data/app/fuseki
+RUN mkdir /data/scripts
+RUN chmod 777 -R /data
+RUN mkdir /var/data
+RUN mkdir /var/data/ticks
+RUN mkdir /var/data/ticks/tdb
+RUN chmod 777 -R /var/data
 
+ADD http://www.random.org/strings/?num=10&len=8&digits=on&upperalpha=on&loweralpha=on&unique=on&format=plain&rnd=new uuid
 
-EXPOSE 8080
+ADD scripts /data/scripts
 
-CMD ["/apps/scripts/start-services.sh"]
+RUN chmod +x /data/scripts/*.sh
+
+RUN /bin/bash /data/scripts/install-fuseki.sh
+
+ADD config/config-tdb.ttl /data/app/fuseki/config-tdb.ttl
+
+RUN chmod +x /data/app/fuseki/fuseki-server /data/app/fuseki/s-*
+
+WORKDIR /data/scripts
+
+#Fix this to add the whole directory
+ADD ttl /data/ttl
+
+EXPOSE 3030
+
+#VOLUME ["/data"]
+
+CMD ["/data/scripts/start-fuseki.sh"]
